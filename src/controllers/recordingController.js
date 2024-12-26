@@ -3,7 +3,7 @@ const Recording = require("../models/recording");
 const createRecording = async (req, res) => {
   try {
     const { name, duration, location, date, time, tags, audioUrl } = req.body;
-    const recording = new Recording({
+    const newRecording = await Recording.Create({
       name,
       duration,
       location,
@@ -12,8 +12,7 @@ const createRecording = async (req, res) => {
       tags,
       audioUrl,
     });
-    await recording.save();
-    res.status(201).json(recording);
+    res.status(201).json(newRecording);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -44,13 +43,39 @@ const getRecordingById = async (req, res) => {
 
 const updateRecording = async (req, res) => {
   try {
+    const { name, duration, location, date, time, tags, audioUrl } = req.body;
+    const { recordingId } = req.params;
+    const updatedRecording = await Recording.findByIdAndUpdate(
+      recordingId,
+      {
+        name,
+        duration,
+        location,
+        date,
+        time,
+        tags,
+        audioUrl,
+      },
+      { new: true }
+    );
+    if (!updatedRecording) {
+      res.status(404).json({ message: "Grabación no encontrada" });
+    }
+    res.status(200).json(updatedRecording);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 const deleteRecording = async (req, res) => {
+  // NOTA Hay un error acá. No se borra el registro de la BBDD
   try {
+    const { recordingId } = req.params;
+    const deletedRecording = Recording.findByIdAndDelete(recordingId);
+    if (!deletedRecording) {
+      res.status(404).json({ message: "Grabación no encontrada" });
+    }
+    res.status(200).json({ message: "Grabación borrada" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
