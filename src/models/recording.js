@@ -26,6 +26,10 @@ const recordingSchema = new mongoose.Schema(
       type: [{ value: String, label: String }],
       required: true,
     },
+    audioUrl: {
+      type: String,
+      required: true
+    }
   },
   { timestamps: true }
 );
