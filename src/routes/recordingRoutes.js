@@ -6,17 +6,29 @@ const {
   updateRecording,
   deleteRecording,
 } = require("../controllers/recordingController");
+const verifyToken = require("../middleware/verifyAuth");
+const checkAllowedEmails = require("../middleware/checkAllowedEmails");
 
 const router = express.Router();
 
-router.post("/recordings", createRecording);
+router.get("/recordings", verifyToken, getAllRecordings);
 
-router.get("/recordings", getAllRecordings);
+router.get("/recordings/:recordingId", verifyToken, getRecordingById);
 
-router.get("/recordings/:recordingId", getRecordingById);
+router.post("/recordings", verifyToken, checkAllowedEmails, createRecording);
 
-router.put("/recordings/:recordingId", updateRecording);
+router.put(
+  "/recordings/:recordingId",
+  verifyToken,
+  checkAllowedEmails,
+  updateRecording
+);
 
-router.delete("/recordings/:recordingId", deleteRecording);
+router.delete(
+  "/recordings/:recordingId",
+  verifyToken,
+  checkAllowedEmails,
+  deleteRecording
+);
 
 module.exports = router;
