@@ -1,6 +1,8 @@
 const Recording = require("../models/recording");
 
 const createRecording = async (req, res) => {
+  // #swagger.tags = ['Recordings']
+  // #swagger.description = 'Endpoint para crear una grabación'
   try {
     const { name, duration, location, date, time, tags, audioUrl } = req.body;
     const newRecording = await Recording.Create({
@@ -19,6 +21,8 @@ const createRecording = async (req, res) => {
 };
 
 const getAllRecordings = async (req, res) => {
+  // #swagger.tags = ['Recordings']
+  // #swagger.description = 'Endpoint para obtener todas las grabaciones'
   try {
     const filters = req.query;
     const recordings = await Recording.find(filters);
@@ -29,6 +33,8 @@ const getAllRecordings = async (req, res) => {
 };
 
 const getRecordingById = async (req, res) => {
+  // #swagger.tags = ['Recordings']
+  // #swagger.description = 'Endpoint para obtener una grabación por ID'
   try {
     const { recordingId } = req.params;
     const recording = await Recording.findById(recordingId);
@@ -42,6 +48,8 @@ const getRecordingById = async (req, res) => {
 };
 
 const updateRecording = async (req, res) => {
+  // #swagger.tags = ['Recordings']
+  // #swagger.description = 'Endpoint para actualizar una grabación'
   try {
     const { name, duration, location, date, time, tags, audioUrl } = req.body;
     const { recordingId } = req.params;
@@ -68,6 +76,8 @@ const updateRecording = async (req, res) => {
 };
 
 const deleteRecording = async (req, res) => {
+  // #swagger.tags = ['Recordings']
+  // #swagger.description = 'Endpoint para borrar una grabación'
   // NOTA Hay un error acá. No se borra el registro de la BBDD
   try {
     const { recordingId } = req.params;

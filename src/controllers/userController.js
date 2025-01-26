@@ -5,6 +5,8 @@ const User = require("../models/user");
 require("dotenv").config();
 
 const registerUser = async (req, res) => {
+  // #swagger.tags = ['Auth']
+  // #swagger.description = 'Endpoint to register a new user'
   try {
     const { email, password } = req.body;
 
@@ -35,6 +37,7 @@ const registerUser = async (req, res) => {
 };
 
 const loginUser = async (req, res) => {
+  // #swagger.tags = ['Auth']
   try {
     const { email, password } = req.body;
 
@@ -67,6 +70,7 @@ const loginUser = async (req, res) => {
 };
 
 const forgotPassword = async (req, res) => {
+  // #swagger.tags = ['Auth']
   try {
     const { email } = req.body;
 
@@ -95,6 +99,7 @@ const forgotPassword = async (req, res) => {
 };
 
 const resetPassword = async (req, res) => {
+  // #swagger.tags = ['Auth']
   try {
     const { token, newPassword } = req.body;
 

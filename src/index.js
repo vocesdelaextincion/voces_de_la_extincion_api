@@ -2,6 +2,9 @@ const express = require("express");
 require("dotenv").config(); // Cargar variables de entorno
 const connectDB = require("./db/conn");
 
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./documentation/swagger_output.json");
+
 const recordingRoutes = require("./routes/recordingRoutes");
 const authRoutes = require("./routes/authRoutes");
 
@@ -20,6 +23,9 @@ const startServer = async () => {
     // Rutas
     app.use("/", recordingRoutes);
     app.use("/auth", authRoutes);
+
+    // Documentación
+    app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
     // Middleware de errores
     app.use((err, req, res, next) => {
