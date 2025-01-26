@@ -245,7 +245,7 @@
         "tags": [
           "Auth"
         ],
-        "description": "",
+        "description": "Endpoint to register a new user",
         "parameters": [
           {
             "name": "body",
