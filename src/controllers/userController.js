@@ -1,8 +1,10 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const sgMail = require("@sendgrid/mail");
 
 require("dotenv").config();
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const registerUser = async (req, res) => {
   // #swagger.tags = ['Auth']
@@ -59,6 +61,29 @@ const loginUser = async (req, res) => {
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
       );
+
+      // TODO Mover ésto a una función aparte
+      const rawCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const hashedCode = await bcrypt.hash(rawCode, 10);
+
+      user.verificationCode = hashedCode;
+      await user.save();
+
+      const msg = {
+        to: user.email,
+        from: process.env.SENDGRID_EMAIL_ACCOUNT,
+        subject: "Email de verificación",
+        html: `<strong>Este es tu código de verificación: ${rawCode}</strong>`, // TODO Usar una template para éste email
+      };
+
+      sgMail
+        .send(msg)
+        .then(() => {
+          console.log("Email sent");
+        })
+        .catch((error) => {
+          console.error(error);
+        });
 
       res.status(200).json({ message: "Login successfull", token });
     } else {
