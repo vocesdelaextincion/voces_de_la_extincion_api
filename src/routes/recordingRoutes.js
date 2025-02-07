@@ -8,6 +8,7 @@ const {
 } = require("../controllers/recordingController");
 const verifyToken = require("../middleware/verifyAuth");
 const checkAllowedEmails = require("../middleware/checkAllowedEmails");
+const requireVerification = require("../middleware/requireVerification");
 
 const router = express.Router();
 
@@ -144,16 +145,28 @@ const router = express.Router();
  * description: No autorizado
  */
 
-router.get("/recordings", verifyToken, getAllRecordings);
+router.get("/recordings", verifyToken, requireVerification, getAllRecordings);
 
-router.get("/recordings/:recordingId", verifyToken, getRecordingById);
+router.get(
+  "/recordings/:recordingId",
+  verifyToken,
+  requireVerification,
+  getRecordingById
+);
 
-router.post("/recordings", verifyToken, checkAllowedEmails, createRecording);
+router.post(
+  "/recordings",
+  verifyToken,
+  checkAllowedEmails,
+  requireVerification,
+  createRecording
+);
 
 router.put(
   "/recordings/:recordingId",
   verifyToken,
   checkAllowedEmails,
+  requireVerification,
   updateRecording
 );
 
@@ -161,6 +174,7 @@ router.delete(
   "/recordings/:recordingId",
   verifyToken,
   checkAllowedEmails,
+  requireVerification,
   deleteRecording
 );
 

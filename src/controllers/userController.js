@@ -113,6 +113,7 @@ const verifyUser = async () => {
     const isCodeValid = bcrypt.compare(verificationCode, user.verificationCode);
     if (isCodeValid) {
       user.verified = true;
+      user.verificationCode = null;
       await user.save();
       res.status(200).json({ message: "User verified successfully" });
     } else {
