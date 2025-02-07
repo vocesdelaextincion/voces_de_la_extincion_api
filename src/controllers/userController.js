@@ -69,6 +69,15 @@ const loginUser = async (req, res) => {
   }
 };
 
+const verifyUser = () => {
+  // #swagger.tags = ['Auth']
+  try {
+    const { email, verificationCode } = req.body;
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const forgotPassword = async (req, res) => {
   // #swagger.tags = ['Auth']
   try {
