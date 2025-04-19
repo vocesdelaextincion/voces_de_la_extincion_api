@@ -1,4 +1,5 @@
 const express = require("express");
+const multer = require('multer');
 const {
   createRecording,
   getAllRecordings,
@@ -9,6 +10,9 @@ const {
 const verifyToken = require("../middleware/verifyAuth");
 const checkAllowedEmails = require("../middleware/checkAllowedEmails");
 const requireVerification = require("../middleware/requireVerification");
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 const router = express.Router();
 
@@ -37,16 +41,43 @@ const router = express.Router();
  * @swagger
  * /recordings:
  *   post:
- *     summary: Crear una nueva grabación
+ *     summary: Crear una nueva grabación (con subida de audio)
  *     tags: [Recordings]
  *     security:
  *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: "#/definitions/Recording"
+ *             type: object
+ *             properties:
+ *               name: 
+ *                 type: string
+ *                 description: Nombre de la grabación.
+ *               duration:
+ *                 type: number
+ *                 format: float
+ *                 description: Duración en segundos.
+ *               location:
+ *                 type: string
+ *                 description: Ubicación (opcional).
+ *               date:
+ *                 type: string
+ *                 format: date
+ *                 description: Fecha (YYYY-MM-DD).
+ *               time:
+ *                 type: string
+ *                 description: Hora (HH:MM).
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Etiquetas (opcional).
+ *               audioFile: 
+ *                 type: string
+ *                 format: binary
+ *                 description: El archivo de audio a subir.
  *     responses:
  *       201:
  *         description: Grabación creada exitosamente.
@@ -159,6 +190,7 @@ router.post(
   verifyToken,
   checkAllowedEmails,
   requireVerification,
+  upload.single('audioFile'),
   createRecording
 );
 

@@ -24,12 +24,12 @@ const recordingSchema = new mongoose.Schema(
     },
     tags: {
       type: [{ value: String, label: String }],
-      required: true,
+      required: false,
     },
     audioUrl: {
       type: String,
-      required: true
-    }
+      required: false,
+    },
   },
   { timestamps: true }
 );
