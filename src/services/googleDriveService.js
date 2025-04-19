@@ -1,12 +1,13 @@
-const { google } = require('googleapis');
-const stream = require('stream');
+const { google } = require("googleapis");
+const stream = require("stream");
 
 // TODO: Replace with your actual credentials path and desired folder ID
 // Ensure GOOGLE_APPLICATION_CREDENTIALS points to your service account key file
 // and GOOGLE_DRIVE_FOLDER_ID is set in your .env file
 const KEYFILEPATH = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-const FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID; 
-const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
+const FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
+// Updated scope to include permission management
+const SCOPES = ["https://www.googleapis.com/auth/drive"];
 
 /**
  * Authenticates with Google Drive API using a service account.
@@ -29,7 +30,7 @@ const authenticate = () => {
  */
 const uploadFile = async (fileBuffer, fileName, mimeType) => {
   const auth = authenticate();
-  const drive = google.drive({ version: 'v3', auth });
+  const drive = google.drive({ version: "v3", auth });
 
   const bufferStream = new stream.PassThrough();
   bufferStream.end(fileBuffer);
@@ -48,18 +49,56 @@ const uploadFile = async (fileBuffer, fileName, mimeType) => {
     const response = await drive.files.create({
       resource: fileMetadata,
       media: media,
-      fields: 'id',
+      fields: "id",
     });
-    console.log('File uploaded successfully. File ID:', response.data.id);
-    // TODO: Consider making the file public or generating a shareable link if needed
-    // You might need additional permissions or API calls for that.
-    // For now, we return the ID. You might construct a direct link if feasible
-    // or store the ID and manage permissions separately.
-    return response.data.id; // Returning the file ID
+    const fileId = response.data.id;
+    console.log("File uploaded successfully. File ID:", fileId);
+
+    // Make the file publicly readable
+    await drive.permissions.create({
+      fileId: fileId,
+      requestBody: {
+        role: "reader",
+        type: "anyone",
+      },
+    });
+    console.log("Permissions updated to public read for File ID:", fileId);
+
+    // Returning the file ID. A direct web link might be constructible
+    // using 'https://drive.google.com/uc?id=FILE_ID' but might depend on file type/settings.
+    return fileId;
   } catch (error) {
-    console.error('Error uploading file to Google Drive:', error);
-    throw new Error('Failed to upload file to Google Drive.');
+    console.error("Error uploading file or setting permissions:", error);
+    throw new Error(
+      "Failed to upload file to Google Drive or set permissions."
+    );
   }
 };
 
-module.exports = { uploadFile };
+/**
+ * Deletes a file from Google Drive.
+ * @param {string} fileId The ID of the file to delete.
+ * @returns {Promise<void>}
+ */
+const deleteFile = async (fileId) => {
+  const auth = authenticate();
+  const drive = google.drive({ version: "v3", auth });
+
+  try {
+    await drive.files.delete({ fileId: fileId });
+    console.log(`File deleted successfully. File ID: ${fileId}`);
+  } catch (error) {
+    console.error(`Error deleting file ${fileId} from Google Drive:`, error);
+    // Decide if the error should propagate or be handled differently
+    // For example, if the file doesn't exist, maybe it's not a critical error?
+    if (error.code === 404) {
+      console.warn(
+        `File ${fileId} not found in Google Drive. Proceeding as if deleted.`
+      );
+      return; // Or handle as appropriate
+    }
+    throw new Error("Failed to delete file from Google Drive.");
+  }
+};
+
+module.exports = { uploadFile, deleteFile };
