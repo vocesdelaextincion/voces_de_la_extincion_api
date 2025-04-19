@@ -1,7 +1,5 @@
 require("dotenv").config();
 
-console.log(process.env.ALLOWED_EMAILS);
-
 const allowedEmails = process.env.ALLOWED_EMAILS.split(",");
 
 const checkAllowedEmails = (req, res, next) => {

@@ -5,7 +5,7 @@ const createRecording = async (req, res) => {
   // #swagger.description = 'Endpoint para crear una grabación'
   try {
     const { name, duration, location, date, time, tags, audioUrl } = req.body;
-    const newRecording = await Recording.Create({
+    const newRecording = await Recording.create({
       name,
       duration,
       location,
