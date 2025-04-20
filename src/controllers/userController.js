@@ -80,15 +80,17 @@ const loginUser = async (req, res) => {
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (isPasswordValid) {
+      if (!user.verified) {
+        return res.status(403).json({ message: "Verifica tu cuenta para acceder" });
+      }
       const token = jwt.sign(
         { id: user._id, email: user.email },
         process.env.JWT_SECRET,
         { expiresIn: "1h" }
       );
-
-      res.status(200).json({ message: "Login successfull", token });
+      return res.status(200).json({ message: "Login successfull", token });
     } else {
-      res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });

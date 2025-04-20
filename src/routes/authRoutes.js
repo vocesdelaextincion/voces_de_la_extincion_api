@@ -78,7 +78,7 @@ router.post("/register", registerUser);
  *         schema:
  *           $ref: "#/definitions/ErrorResponse"
  */
-router.post("/login", requireVerification, loginUser);
+router.post("/login", loginUser);
 
 /**
  * @swagger
