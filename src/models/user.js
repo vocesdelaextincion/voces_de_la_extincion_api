@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  verificationCode: {
+  verificationToken: { // Renamed from verificationCode
     type: String,
   },
 });

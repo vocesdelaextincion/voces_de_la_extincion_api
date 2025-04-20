@@ -1,10 +1,10 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const crypto = require('crypto');
 const User = require("../models/user");
-const sgMail = require("@sendgrid/mail");
+const { sendVerificationEmail } = require('../services/emailService');
 
 require("dotenv").config();
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const registerUser = async (req, res) => {
   // #swagger.tags = ['Auth']
@@ -18,49 +18,47 @@ const registerUser = async (req, res) => {
         .json({ message: "Email and password are required" });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+    let existingUser = await User.findOne({ email });
+    if (existingUser && existingUser.verified) {
+      return res.status(400).json({ message: "User already exists and is verified." });
     }
 
+    let newUser;
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = await User.create({
-      email,
-      password: hashedPassword,
-    });
-
-    const user = await User.findOne({ email });
-
-    // TODO Mover ésto a una función aparte
-    const rawCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const hashedCode = await bcrypt.hash(rawCode, 10);
-
-    user.verificationCode = hashedCode;
-    await user.save();
-
-    const msg = {
-      to: user.email,
-      from: process.env.SENDGRID_EMAIL_ACCOUNT,
-      subject: "Email de verificación",
-      html: `<strong>Este es tu código de verificación: ${rawCode}</strong>`, // TODO Usar una template para éste email
-    };
-
-    sgMail
-      .send(msg)
-      .then(() => {
-        console.log("Email sent");
-      })
-      .catch((error) => {
-        console.error(error);
+    if (existingUser && !existingUser.verified) {
+      existingUser.password = hashedPassword;
+      newUser = existingUser;
+      console.log('Updating password for existing unverified user.');
+    } else {
+      newUser = new User({
+        email,
+        password: hashedPassword,
       });
+      console.log('Creating new user record.');
+    }
 
-    res.status(201).json({
-      message: "User created successfully",
-      user: { email: newUser.email },
-    });
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    newUser.verificationToken = verificationToken;
+
+    await newUser.save();
+
+    try {
+      await sendVerificationEmail(newUser.email, verificationToken);
+      console.log(`Verification email sent to ${newUser.email}`);
+      res.status(201).json({
+        message:
+          "User registered successfully. Please check your email to verify your account.",
+        user: { email: newUser.email },
+      });
+    } catch (emailError) {
+      console.error("Failed to send verification email:", emailError);
+      await User.deleteOne({ _id: newUser._id });
+      return res.status(500).json({ message: "Failed to send verification email. Please try registering again." });
+    }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Registration error:", error);
+    res.status(500).json({ message: "An error occurred during registration." });
   }
 };
 
@@ -97,30 +95,35 @@ const loginUser = async (req, res) => {
   }
 };
 
-const verifyUser = async () => {
+const verifyUser = async (req, res) => { 
   // #swagger.tags = ['Auth']
+  // #swagger.description = 'Endpoint to verify user email using a token'
+  // #swagger.parameters['token'] = { in: 'query', description: 'Verification token received via email.', required: true, type: 'string' }
   try {
-    const { email, verificationCode } = req.body;
+    const { token } = req.query; 
 
-    const user = await User.findOne({ email });
+    if (!token) {
+      return res.status(400).json({ message: "Verification token is missing." });
+    }
+
+    const user = await User.findOne({ verificationToken: token });
+
     if (!user) {
-      return res.status(400).json({ message: "User doesn't exist" });
-    }
-    if (user.verified) {
-      return res.status(400).json({ message: "User already verified" });
+      return res.status(400).json({ message: "Invalid or expired verification token." });
     }
 
-    const isCodeValid = bcrypt.compare(verificationCode, user.verificationCode);
-    if (isCodeValid) {
-      user.verified = true;
-      user.verificationCode = null;
-      await user.save();
-      res.status(200).json({ message: "User verified successfully" });
-    } else {
-      res.status(400).json({ message: "Invalid verification code" });
+    if (user.verified) {
+      return res.status(400).json({ message: "Account already verified." });
     }
+
+    user.verified = true;
+    user.verificationToken = undefined; 
+    await user.save();
+
+    res.status(200).json({ message: "Email verified successfully! You can now log in." });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Email verification error:", error);
+    res.status(500).json({ message: "An error occurred during email verification." });
   }
 };
 
@@ -143,9 +146,6 @@ const forgotPassword = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
-
-    // Here you would send the token to the user's email
-    // For example, using a mail service like SendGrid or Nodemailer
 
     res.status(200).json({ message: "Password reset link sent", token });
   } catch (error) {

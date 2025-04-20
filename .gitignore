@@ -40,5 +40,6 @@ temp/
 *.bak
 *.orig
 
+TODO.txt
 
 gcp-keys/

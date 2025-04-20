@@ -1,5 +1,11 @@
 const express = require("express");
-const { registerUser, loginUser } = require("../controllers/userController");
+const { 
+  registerUser, 
+  loginUser, 
+  verifyUser, 
+  forgotPassword, 
+  resetPassword 
+} = require("../controllers/userController");
 const requireVerification = require("../middleware/requireVerification");
 
 const router = express.Router();
@@ -66,9 +72,23 @@ const router = express.Router();
  *       401:
  *         description: Credenciales inválidas.
  */
+/**
+ * @swagger
+ * /auth/verify-email:
+ *   get:
+ *     summary: Verificar correo electrónico
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Correo electrónico verificado exitosamente.
+ *       401:
+ *         description: Token inválido.
+ */
 
 router.post("/register", registerUser);
 
 router.post("/login", requireVerification, loginUser);
+
+router.get("/verify-email", verifyUser);
 
 module.exports = router;
