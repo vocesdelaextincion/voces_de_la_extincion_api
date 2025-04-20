@@ -11,6 +11,19 @@ const authRoutes = require("./routes/authRoutes");
 const app = express();
 const port = process.env.PORT || 3000;
 
+const fs = require("fs");
+const path = "./src/gcp-credentials";
+const filePath = `${path}/credentials.json`;
+
+if (process.env.GOOGLE_APPLICATION_CREDENTIALS_FILE) {
+  // Ensure the directory exists
+  if (!fs.existsSync(path)) {
+    fs.mkdirSync(path, { recursive: true });
+  }
+  fs.writeFileSync(filePath, process.env.GOOGLE_APPLICATION_CREDENTIALS_FILE);
+}
+
+
 const startServer = async () => {
   try {
     await connectDB();
