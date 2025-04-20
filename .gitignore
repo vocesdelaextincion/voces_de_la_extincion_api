@@ -1,5 +1,5 @@
 # Node modules
-node_modules/
+node_modules
 
 # Logs
 logs/
@@ -39,3 +39,7 @@ temp/
 # Others
 *.bak
 *.orig
+
+TODO.txt
+
+gcp-keys/

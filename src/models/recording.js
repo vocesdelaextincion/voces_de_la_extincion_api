@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const recordingSchema = new mongoose.Schema(
   {
+    _id: {
+      type: String,
+      required: true,
+    },
     name: {
       type: String,
       required: true,
@@ -24,12 +28,16 @@ const recordingSchema = new mongoose.Schema(
     },
     tags: {
       type: [{ value: String, label: String }],
-      required: true,
+      required: false,
     },
     audioUrl: {
       type: String,
-      required: true
-    }
+      required: false,
+    },
+    googleDriveFileId: {
+      type: String,
+      required: false,
+    },
   },
   { timestamps: true }
 );
